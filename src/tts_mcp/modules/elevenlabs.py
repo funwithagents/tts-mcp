@@ -1,5 +1,6 @@
 """ElevenLabs streaming TTS module."""
 import asyncio
+from typing import Iterator
 
 import miniaudio
 from elevenlabs import ElevenLabs
@@ -7,6 +8,24 @@ from elevenlabs.types import VoiceSettings
 
 from tts_mcp.config import ConfigError
 from tts_mcp.modules.base import TTSError, TTSModule, TTSOptions
+
+
+class _ChunkSource(miniaudio.StreamableSource):
+    """Wraps a bytes-chunk iterator as a miniaudio StreamableSource."""
+
+    def __init__(self, chunks: Iterator[bytes]) -> None:
+        self._chunks = chunks
+        self._buf = bytearray()
+
+    def read(self, num_bytes: int) -> bytes:
+        while len(self._buf) < num_bytes:
+            try:
+                self._buf.extend(next(self._chunks))
+            except StopIteration:
+                break
+        data = bytes(self._buf[:num_bytes])
+        self._buf = self._buf[num_bytes:]
+        return data
 
 
 class ElevenLabsModule(TTSModule):
@@ -29,7 +48,8 @@ class ElevenLabsModule(TTSModule):
     async def stream(self, text: str, options: TTSOptions, callback) -> None:
         def _blocking_stream():
             try:
-                def _mp3_source():
+                raw_chunks = (
+                    chunk
                     for chunk in self._client.text_to_speech.stream(
                         text=text,
                         voice_id=self._voice_id,
@@ -39,12 +59,12 @@ class ElevenLabsModule(TTSModule):
                             stability=self._stability,
                             similarity_boost=self._similarity_boost,
                         ),
-                    ):
-                        if chunk:
-                            yield chunk
-
+                    )
+                    if chunk
+                )
+                source = _ChunkSource(raw_chunks)
                 for pcm_chunk in miniaudio.stream_any(
-                    _mp3_source(),
+                    source,
                     output_format=miniaudio.SampleFormat.SIGNED16,
                     nchannels=1,
                     sample_rate=44100,

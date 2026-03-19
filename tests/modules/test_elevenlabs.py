@@ -75,10 +75,12 @@ def test_stream_calls_callback_with_decoded_pcm_bytes(mock_elevenlabs_cls, mock_
 @patch("tts_mcp.modules.elevenlabs.miniaudio.stream_any")
 @patch("tts_mcp.modules.elevenlabs.ElevenLabs")
 def test_stream_skips_empty_elevenlabs_chunks(mock_elevenlabs_cls, mock_stream_any):
-    received_by_miniaudio = []
+    # Drain the _ChunkSource via read() to inspect what bytes reached miniaudio
+    all_data = bytearray()
 
     def capture_source(source, **kwargs):
-        received_by_miniaudio.extend(source)
+        while chunk := source.read(1024):
+            all_data.extend(chunk)
         return iter([])
 
     mock_client = MagicMock()
@@ -89,14 +91,14 @@ def test_stream_skips_empty_elevenlabs_chunks(mock_elevenlabs_cls, mock_stream_a
     module = ElevenLabsModule(VALID_CONFIG)
     asyncio.run(module.stream("hello", TTSOptions(), MagicMock()))
 
-    assert received_by_miniaudio == [b"data", b"more"]
+    assert bytes(all_data) == b"datamore"
 
 
 @patch("tts_mcp.modules.elevenlabs.miniaudio.stream_any")
 @patch("tts_mcp.modules.elevenlabs.ElevenLabs")
 def test_stream_wraps_elevenlabs_exception_in_tts_error(mock_elevenlabs_cls, mock_stream_any):
-    # Have stream_any return the source generator so its iteration triggers the SDK exception
-    mock_stream_any.side_effect = lambda source, **kwargs: source
+    # Trigger source consumption so the SDK exception propagates through _ChunkSource.read()
+    mock_stream_any.side_effect = lambda source, **kwargs: (source.read(1) and iter([]))
 
     mock_client = MagicMock()
     mock_client.text_to_speech.stream.side_effect = RuntimeError("network failure")
