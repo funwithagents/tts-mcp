@@ -4,7 +4,7 @@ Plans are meant to be executed in order. Each plan builds on the previous ones.
 
 | Plan | File | Description | Status |
 |---|---|---|---|
-| 01 | [Project Setup](01-project-setup.md) | `uv` init, dependencies, source tree, entry points | not started |
+| 01 | [Project Setup](01-project-setup.md) | `uv` init, dependencies, source tree, entry points | done |
 | 02 | [Configuration](02-config.md) | Config dataclasses, loading, validation, CLI arg parsing | not started |
 | 03 | [Audio Player](03-audio-player.md) | `sounddevice` output stream, `AudioPlayer`, PCM feed + drain | not started |
 | 04 | [TTS Module Interface](04-tts-module-interface.md) | ABC, `TTSOptions`, `TTSError`, registry | not started |

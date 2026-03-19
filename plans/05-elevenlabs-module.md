@@ -2,7 +2,7 @@
 
 ## Goal
 
-Implement `ElevenLabsModule` in `modules/elevenlabs_v1.py`: parse config, call the ElevenLabs streaming API with `output_format="pcm_44100"`, and fire the callback for each PCM chunk.
+Implement `ElevenLabsModule` in `modules/elevenlabs.py`: parse config, call the ElevenLabs streaming API with `output_format="pcm_44100"`, and fire the callback for each PCM chunk.
 
 ## Reference
 
@@ -10,7 +10,7 @@ See `specs/elevenlabs-module.md`.
 
 ## Tasks
 
-### `modules/elevenlabs_v1.py`
+### `modules/elevenlabs.py`
 
 - [ ] Define `ElevenLabsModule(TTSModule)`:
   - Constructor accepts the full `tts` config dict; parse and validate:
@@ -35,7 +35,7 @@ See `specs/elevenlabs-module.md`.
 
 - [ ] Import `ElevenLabsModule` and add `REGISTRY["elevenlabs"] = ElevenLabsModule`
 
-### Tests (`tests/modules/test_elevenlabs_v1.py`)
+### Tests (`tests/modules/test_elevenlabs.py`)
 
 - [ ] Constructor raises `ConfigError` for missing `api_key`
 - [ ] Constructor raises `ConfigError` for missing `voice_id`

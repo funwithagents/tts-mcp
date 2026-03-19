@@ -22,7 +22,7 @@ tts-mcp/
 │       └── modules/
 │           ├── __init__.py      # REGISTRY + load_module()
 │           ├── base.py          # TTSModule ABC, TTSOptions, TTSError
-│           └── elevenlabs_v1.py
+│           └── elevenlabs.py
 ├── tests/
 │   ├── conftest.py
 │   ├── test_config.py
@@ -30,7 +30,7 @@ tts-mcp/
 │   ├── test_engine.py
 │   ├── test_server.py
 │   └── modules/
-│       └── test_elevenlabs_v1.py
+│       └── test_elevenlabs.py
 └── tests-e2e/
     └── test_speak.py
 ```

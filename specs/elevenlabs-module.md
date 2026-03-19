@@ -2,7 +2,7 @@
 
 ## Overview
 
-`elevenlabs_v1` implements `TTSModule` using the ElevenLabs streaming TTS API. It requests raw PCM output so chunks can be fed directly to `AudioPlayer` without decoding.
+`elevenlabs` implements `TTSModule` using the ElevenLabs streaming TTS API. It requests raw PCM output so chunks can be fed directly to `AudioPlayer` without decoding.
 
 ## Config fields
 

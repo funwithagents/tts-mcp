@@ -25,7 +25,7 @@
 │ TTSModule             │  │ AudioPlayer  (audio.py)  │
 │ (modules/base.py ABC) │  │  • Opens sounddevice     │
 │                       │  │    output stream         │
-│ elevenlabs_v1.py      │  │  • feed(chunk: bytes)    │
+│ elevenlabs.py      │  │  • feed(chunk: bytes)    │
 │  • Calls ElevenLabs   │  │    writes PCM to device  │
 │    streaming API      │  └─────────────────────────-┘
 │  • Yields PCM chunks  │
@@ -55,7 +55,7 @@
 | `server.py` | MCP protocol, tool registration, input validation, lifecycle (start/stop uvicorn) |
 | `engine.py` | Wires module + player; single `speak()` entry point; no protocol knowledge |
 | `modules/base.py` | Defines `TTSModule` ABC and shared dataclasses (`TTSOptions`) |
-| `modules/elevenlabs_v1.py` | ElevenLabs API interaction, PCM streaming, config parsing |
+| `modules/elevenlabs.py` | ElevenLabs API interaction, PCM streaming, config parsing |
 | `audio.py` | `sounddevice` output stream management; format-agnostic PCM consumer |
 | `config.py` | Load, parse, and validate `config.json`; produce typed config dataclasses |
 | `cli.py` | Argument parsing; wires config → engine → server; calls `uvicorn.run` |
