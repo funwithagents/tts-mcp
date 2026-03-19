@@ -12,7 +12,7 @@ See `specs/elevenlabs-module.md`.
 
 ### `modules/elevenlabs.py`
 
-- [ ] Define `ElevenLabsModule(TTSModule)`:
+- [x] Define `ElevenLabsModule(TTSModule)`:
   - Constructor accepts the full `tts` config dict; parse and validate:
     - `api_key`: required, non-empty string → raise `ConfigError` if missing/empty
     - `voice_id`: required, non-empty string → raise `ConfigError` if missing/empty
@@ -20,7 +20,7 @@ See `specs/elevenlabs-module.md`.
     - `stability`: optional float, default `0.5`
     - `similarity_boost`: optional float, default `0.75`
   - Instantiate `elevenlabs.ElevenLabs(api_key=api_key)` client in constructor
-- [ ] Implement `stream(text, options, callback)`:
+- [x] Implement `stream(text, options, callback)`:
   - Call `self._client.text_to_speech.stream(...)` with:
     - `text=text`
     - `voice_id=self._voice_id`
@@ -33,16 +33,16 @@ See `specs/elevenlabs-module.md`.
 
 ### Register in `modules/__init__.py`
 
-- [ ] Import `ElevenLabsModule` and add `REGISTRY["elevenlabs"] = ElevenLabsModule`
+- [x] Import `ElevenLabsModule` and add `REGISTRY["elevenlabs"] = ElevenLabsModule`
 
 ### Tests (`tests/modules/test_elevenlabs.py`)
 
-- [ ] Constructor raises `ConfigError` for missing `api_key`
-- [ ] Constructor raises `ConfigError` for missing `voice_id`
-- [ ] Constructor uses correct defaults for `model`, `stability`, `similarity_boost`
-- [ ] `stream()` calls callback with each chunk yielded by the SDK iterator
-- [ ] `stream()` skips empty chunks (does not call callback)
-- [ ] `stream()` wraps SDK exception in `TTSError`
+- [x] Constructor raises `ConfigError` for missing `api_key`
+- [x] Constructor raises `ConfigError` for missing `voice_id`
+- [x] Constructor uses correct defaults for `model`, `stability`, `similarity_boost`
+- [x] `stream()` calls callback with each chunk yielded by the SDK iterator
+- [x] `stream()` skips empty chunks (does not call callback)
+- [x] `stream()` wraps SDK exception in `TTSError`
 
 ### Note on testing
 
