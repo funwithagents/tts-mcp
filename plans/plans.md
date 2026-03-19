@@ -11,6 +11,6 @@ Plans are meant to be executed in order. Each plan builds on the previous ones.
 | 05 | [ElevenLabs Module](05-elevenlabs-module.md) | Streaming PCM via ElevenLabs SDK, config, error handling | done |
 | 06 | [TTS Engine](06-tts-engine.md) | Wires module + player, `speak()` entry point | done |
 | 07 | [MCP Server](07-mcp-server.md) | `speak` tool, StreamableHTTP, startup wiring | done |
-| 08 | [E2E Testing](08-e2e-testing.md) | In-process server, `speak` tool call, no-error assertion | not started |
+| 08 | [E2E Testing](08-e2e-testing.md) | In-process server, `speak` tool call, no-error assertion | done |
 
 **Legend:** not started · in progress · done

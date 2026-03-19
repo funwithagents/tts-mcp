@@ -14,7 +14,8 @@
 
 ## Non-obvious decisions
 
-- **`miniaudio.stream_any` for streaming decode**: accepts a source generator yielding arbitrary byte chunks of MP3 and yields decoded PCM `array.array` incrementally — a natural fit for the streaming callback model.
+- **`_ChunkSource(StreamableSource)` adapter**: `miniaudio.stream_any` requires a `StreamableSource` (ABC with a `read(n)` method), not a plain Python generator. `_ChunkSource` wraps the ElevenLabs chunk iterator in a `bytearray` buffer and serves bytes via `read()`. Empty chunks are filtered before being extended into the buffer via a generator expression.
+- **`miniaudio.stream_any` for streaming decode**: accepts a `StreamableSource` and yields decoded PCM `array.array` chunks incrementally — a natural fit for the streaming callback model.
 - **Single `_blocking_stream` closure in `asyncio.to_thread`**: the entire encode-decode loop (ElevenLabs iterator + miniaudio decode + callback calls + try/except) lives inside one closure passed to `asyncio.to_thread`, keeping async wrapping simple.
 - **Exception wrapping catches all `Exception`**: a single `except Exception` covers both ElevenLabs SDK exceptions and miniaudio decode errors; auth-specific messages can be added in a later iteration.
 - **`VoiceSettings` import**: imported from `elevenlabs.types` (the SDK's public types module).

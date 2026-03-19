@@ -67,7 +67,9 @@ tts-mcp/
 │   ├── test_server.py
 │   └── modules/
 │       └── test_elevenlabs.py
-└── tests-e2e/                   # End-to-end tests (hit real ElevenLabs API, require config.json)
+└── tests-e2e/                   # End-to-end tests (hit real ElevenLabs API, require config.json + audio hw)
+    ├── helpers.py               # Subprocess start/stop, free-port, TCP readiness helpers
+    ├── conftest.py              # server_url fixture (starts subprocess, yields MCP URL)
     └── test_speak.py            # speak tool → ElevenLabs → AudioPlayer (no audio verification)
 ```
 
@@ -121,7 +123,7 @@ MCP client
 | Suite | Location | What it covers | External deps |
 |-------|----------|----------------|---------------|
 | Unit tests | `tests/` | Config, AudioPlayer, TTSEngine, MCP server, ElevenLabs module — all in-process, no network | None |
-| E2E tests | `tests-e2e/test_speak.py` | Full pipeline: MCP `speak` tool → ElevenLabs API → AudioPlayer — asserts no error and audio bytes produced | Real ElevenLabs API key in `config.json` |
+| E2E tests | `tests-e2e/test_speak.py` | Full pipeline: MCP `speak` tool → ElevenLabs API → miniaudio decode → AudioPlayer — server runs as subprocess; asserts no error | Real ElevenLabs API key in `config.json`; audio hardware |
 
 E2E tests do **not** verify audio content or playback quality — they assert that the call succeeds and that audio bytes were produced by the module.
 

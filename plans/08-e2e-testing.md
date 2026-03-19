@@ -22,19 +22,19 @@ The server runs as a real subprocess (`uv run tts-mcp-server --config <tmpconfig
 
 ### `tests-e2e/helpers.py`
 
-- [ ] `load_config()` — load `config.json` from repo root
-- [ ] `find_free_port()` — bind to port 0 and return the assigned port
-- [ ] `_wait_for_port(host, port, timeout)` — poll TCP connection until ready
-- [ ] `start_mcp_server(config, port)` — write temp config, spawn `uv run tts-mcp-server`, wait for port; return `(proc, config_path)`
-- [ ] `stop_mcp_server(proc, config_path)` — terminate subprocess, clean up temp file
+- [x] `load_config()` — load `config.json` from repo root
+- [x] `find_free_port()` — bind to port 0 and return the assigned port
+- [x] `_wait_for_port(host, port, timeout)` — poll TCP connection until ready
+- [x] `start_mcp_server(config, port)` — write temp config, spawn `uv run tts-mcp-server`, wait for port; return `(proc, config_path)`
+- [x] `stop_mcp_server(proc, config_path)` — terminate subprocess, clean up temp file
 
 ### `tests-e2e/conftest.py`
 
-- [ ] `server_url` fixture: skip if `config.json` absent; start subprocess; yield `http://127.0.0.1:{port}/mcp`; stop after test
+- [x] `server_url` fixture: skip if `config.json` absent; start subprocess; yield `http://127.0.0.1:{port}/mcp`; stop after test
 
 ### `tests-e2e/test_speak.py`
 
-- [ ] Test `test_speak_returns_ok`:
+- [x] Test `test_speak_returns_ok`:
   - Connect via `streamablehttp_client` → `ClientSession`
   - Call the `speak` tool with `{"text": "Hello from the TTS MCP test"}`
   - Assert the result content is `"OK"`
