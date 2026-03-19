@@ -1,6 +1,7 @@
 """ElevenLabs streaming TTS module."""
 import asyncio
 
+import miniaudio
 from elevenlabs import ElevenLabs
 from elevenlabs.types import VoiceSettings
 
@@ -28,18 +29,27 @@ class ElevenLabsModule(TTSModule):
     async def stream(self, text: str, options: TTSOptions, callback) -> None:
         def _blocking_stream():
             try:
-                for chunk in self._client.text_to_speech.stream(
-                    text=text,
-                    voice_id=self._voice_id,
-                    model_id=self._model,
-                    output_format="pcm_44100",
-                    voice_settings=VoiceSettings(
-                        stability=self._stability,
-                        similarity_boost=self._similarity_boost,
-                    ),
+                def _mp3_source():
+                    for chunk in self._client.text_to_speech.stream(
+                        text=text,
+                        voice_id=self._voice_id,
+                        model_id=self._model,
+                        output_format="mp3_44100_128",
+                        voice_settings=VoiceSettings(
+                            stability=self._stability,
+                            similarity_boost=self._similarity_boost,
+                        ),
+                    ):
+                        if chunk:
+                            yield chunk
+
+                for pcm_chunk in miniaudio.stream_any(
+                    _mp3_source(),
+                    output_format=miniaudio.SampleFormat.SIGNED16,
+                    nchannels=1,
+                    sample_rate=44100,
                 ):
-                    if chunk:
-                        callback(chunk)
+                    callback(pcm_chunk.tobytes())
             except Exception as exc:
                 raise TTSError(f"ElevenLabs request failed: {exc}") from exc
 

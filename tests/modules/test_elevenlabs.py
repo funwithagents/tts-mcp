@@ -1,4 +1,5 @@
 """Unit tests for ElevenLabsModule."""
+import array as _array
 import asyncio
 from unittest.mock import MagicMock, patch
 
@@ -53,48 +54,54 @@ def test_custom_values(mock_elevenlabs_cls):
     assert module._similarity_boost == 0.9
 
 
+@patch("tts_mcp.modules.elevenlabs.miniaudio.stream_any")
 @patch("tts_mcp.modules.elevenlabs.ElevenLabs")
-def test_stream_calls_callback_for_each_chunk(mock_elevenlabs_cls):
-    chunks = [b"chunk1", b"chunk2", b"chunk3"]
+def test_stream_calls_callback_with_decoded_pcm_bytes(mock_elevenlabs_cls, mock_stream_any):
+    pcm_chunks = [_array.array('h', [10, 20]), _array.array('h', [30, 40])]
     mock_client = MagicMock()
-    mock_client.text_to_speech.stream.return_value = iter(chunks)
+    mock_client.text_to_speech.stream.return_value = iter([b"mp3data"])
     mock_elevenlabs_cls.return_value = mock_client
+    mock_stream_any.return_value = iter(pcm_chunks)
 
     module = ElevenLabsModule(VALID_CONFIG)
     callback = MagicMock()
-
-    asyncio.run(module.stream("hello", TTSOptions(), callback))
-
-    assert callback.call_count == 3
-    callback.assert_any_call(b"chunk1")
-    callback.assert_any_call(b"chunk2")
-    callback.assert_any_call(b"chunk3")
-
-
-@patch("tts_mcp.modules.elevenlabs.ElevenLabs")
-def test_stream_skips_empty_chunks(mock_elevenlabs_cls):
-    chunks = [b"data", b"", b"more"]
-    mock_client = MagicMock()
-    mock_client.text_to_speech.stream.return_value = iter(chunks)
-    mock_elevenlabs_cls.return_value = mock_client
-
-    module = ElevenLabsModule(VALID_CONFIG)
-    callback = MagicMock()
-
     asyncio.run(module.stream("hello", TTSOptions(), callback))
 
     assert callback.call_count == 2
-    callback.assert_any_call(b"data")
-    callback.assert_any_call(b"more")
+    callback.assert_any_call(pcm_chunks[0].tobytes())
+    callback.assert_any_call(pcm_chunks[1].tobytes())
 
 
+@patch("tts_mcp.modules.elevenlabs.miniaudio.stream_any")
 @patch("tts_mcp.modules.elevenlabs.ElevenLabs")
-def test_stream_wraps_sdk_exception_in_tts_error(mock_elevenlabs_cls):
+def test_stream_skips_empty_elevenlabs_chunks(mock_elevenlabs_cls, mock_stream_any):
+    received_by_miniaudio = []
+
+    def capture_source(source, **kwargs):
+        received_by_miniaudio.extend(source)
+        return iter([])
+
+    mock_client = MagicMock()
+    mock_client.text_to_speech.stream.return_value = iter([b"data", b"", b"more"])
+    mock_elevenlabs_cls.return_value = mock_client
+    mock_stream_any.side_effect = capture_source
+
+    module = ElevenLabsModule(VALID_CONFIG)
+    asyncio.run(module.stream("hello", TTSOptions(), MagicMock()))
+
+    assert received_by_miniaudio == [b"data", b"more"]
+
+
+@patch("tts_mcp.modules.elevenlabs.miniaudio.stream_any")
+@patch("tts_mcp.modules.elevenlabs.ElevenLabs")
+def test_stream_wraps_elevenlabs_exception_in_tts_error(mock_elevenlabs_cls, mock_stream_any):
+    # Have stream_any return the source generator so its iteration triggers the SDK exception
+    mock_stream_any.side_effect = lambda source, **kwargs: source
+
     mock_client = MagicMock()
     mock_client.text_to_speech.stream.side_effect = RuntimeError("network failure")
     mock_elevenlabs_cls.return_value = mock_client
 
     module = ElevenLabsModule(VALID_CONFIG)
-
     with pytest.raises(TTSError, match="network failure"):
         asyncio.run(module.stream("hello", TTSOptions(), MagicMock()))
