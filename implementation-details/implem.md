@@ -11,7 +11,7 @@ Each file explains non-obvious choices, gotchas, and deviations from the origina
 | 04 — TTS Module Interface | [04-tts-module-interface.md](04-tts-module-interface.md) | ABC and registry notes | yes |
 | 05 — ElevenLabs Module | [05-elevenlabs-module.md](05-elevenlabs-module.md) | ElevenLabs SDK integration notes | yes |
 | 06 — TTS Engine | [06-tts-engine.md](06-tts-engine.md) | Engine wiring notes | yes |
-| 07 — MCP Server | [07-mcp-server.md](07-mcp-server.md) | speak tool, StreamableHTTP notes | no |
+| 07 — MCP Server | [07-mcp-server.md](07-mcp-server.md) | speak tool, StreamableHTTP notes | yes |
 | 08 — E2E Testing | [08-e2e-testing.md](08-e2e-testing.md) | In-process server, speak tool call, assertions | no |
 
 **Legend:** no = not yet written · yes = written
