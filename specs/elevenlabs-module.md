@@ -22,31 +22,47 @@ All fields go under the `tts` block in `config.json` alongside `"type": "elevenl
 
 Use the official `elevenlabs` Python SDK. It provides a `generate` function (non-streaming) and a `stream` function for streaming. Use the streaming interface.
 
-### Output format
+### Output format and decoding
 
-Request `output_format="pcm_44100"` from the ElevenLabs API. This yields raw signed 16-bit PCM at 44100 Hz mono — no decoding needed, directly consumable by `AudioPlayer`.
+Request `output_format="mp3_44100_128"` from the ElevenLabs API (128 kbps MP3 at 44100 Hz). MP3 chunks are then decoded to raw signed 16-bit PCM mono using `miniaudio.stream_any` before being passed to the callback — so `AudioPlayer` always receives PCM regardless of the upstream format.
 
 ### Streaming
 
-The ElevenLabs SDK streaming interface yields `bytes` chunks. For each chunk, call `callback(chunk)`.
+The ElevenLabs SDK streaming interface yields `bytes` chunks of MP3 data. Feed them into a `miniaudio.stream_any` source generator, which decodes them to PCM `array.array` chunks. Call `callback(pcm_chunk.tobytes())` for each decoded chunk.
 
 ```python
 async def stream(self, text, options, callback):
-    for chunk in elevenlabs_client.text_to_speech.stream(
-        text=text,
-        voice_id=self._voice_id,
-        model_id=self._model,
-        output_format="pcm_44100",
-        voice_settings=VoiceSettings(
-            stability=self._stability,
-            similarity_boost=self._similarity_boost,
-        ),
-    ):
-        if chunk:
-            callback(chunk)
+    def _blocking_stream():
+        def _mp3_source():
+            for chunk in elevenlabs_client.text_to_speech.stream(
+                text=text,
+                voice_id=self._voice_id,
+                model_id=self._model,
+                output_format="mp3_44100_128",
+                voice_settings=VoiceSettings(
+                    stability=self._stability,
+                    similarity_boost=self._similarity_boost,
+                ),
+            ):
+                if chunk:
+                    yield chunk
+
+        for pcm_chunk in miniaudio.stream_any(
+            _mp3_source(),
+            output_format=miniaudio.SampleFormat.SIGNED16,
+            nchannels=1,
+            sample_rate=44100,
+        ):
+            callback(pcm_chunk.tobytes())
+
+    await asyncio.to_thread(_blocking_stream)
 ```
 
-Note: the ElevenLabs SDK streaming method may be synchronous (returns an iterator, not async). Wrap the blocking iteration with `asyncio.to_thread` or run in an executor to avoid blocking the event loop.
+Note: the ElevenLabs SDK streaming method is synchronous (returns an iterator). The entire decode-and-feed loop is wrapped in `asyncio.to_thread` to avoid blocking the event loop.
+
+### Dependencies
+
+Requires `miniaudio` (`pip install miniaudio`) for MP3 → PCM streaming decoding.
 
 ### Error handling
 

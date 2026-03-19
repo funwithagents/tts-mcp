@@ -28,9 +28,10 @@
 │ elevenlabs.py      │  │  • feed(chunk: bytes)    │
 │  • Calls ElevenLabs   │  │    writes PCM to device  │
 │    streaming API      │  └─────────────────────────-┘
-│  • Yields PCM chunks  │
+│  • Decodes MP3→PCM    │
+│    via miniaudio      │
 │  • Calls callback per │
-│    chunk              │
+│    PCM chunk          │
 └────────────┬──────────┘
              │ HTTPS streaming
 ┌────────────▼──────────┐
@@ -43,8 +44,8 @@
 1. MCP client sends a `speak` tool call with `{"text": "Hello world", "voice_id": "..."}`.
 2. `server.py` receives the call, extracts parameters, calls `engine.speak(text, options)`.
 3. `engine.speak` calls `module.stream(text, options, callback=player.feed)`.
-4. The ElevenLabs module opens an HTTPS streaming connection to the ElevenLabs API requesting raw PCM output.
-5. As PCM chunks arrive, the module calls `player.feed(chunk)` for each one.
+4. The ElevenLabs module opens an HTTPS streaming connection to the ElevenLabs API requesting MP3 output (`mp3_44100_128`); it decodes each chunk to raw signed 16-bit PCM mono via `miniaudio.stream_any` in-process.
+5. As decoded PCM chunks are produced, the module calls `player.feed(chunk)` for each one.
 6. `AudioPlayer.feed` writes the chunk to the open `sounddevice` output stream — playback begins on the first chunk.
 7. When the stream ends, `engine.speak` returns; `server.py` returns a success response to the MCP client.
 
@@ -55,7 +56,7 @@
 | `server.py` | MCP protocol, tool registration, input validation, lifecycle (start/stop uvicorn) |
 | `engine.py` | Wires module + player; single `speak()` entry point; no protocol knowledge |
 | `modules/base.py` | Defines `TTSModule` ABC and shared dataclasses (`TTSOptions`) |
-| `modules/elevenlabs.py` | ElevenLabs API interaction, PCM streaming, config parsing |
+| `modules/elevenlabs.py` | ElevenLabs API interaction, MP3→PCM decoding via miniaudio, config parsing |
 | `audio.py` | `sounddevice` output stream management; format-agnostic PCM consumer |
 | `config.py` | Load, parse, and validate `config.json`; produce typed config dataclasses |
 | `cli.py` | Argument parsing; wires config → engine → server; calls `uvicorn.run` |

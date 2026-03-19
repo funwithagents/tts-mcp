@@ -4,21 +4,22 @@
 
 - `ElevenLabsModule` in `src/tts_mcp/modules/elevenlabs.py` implementing the `TTSModule` ABC
 - Config validation in constructor: `api_key` and `voice_id` are required non-empty strings; `model`, `stability`, `similarity_boost` are optional with defaults
-- `stream()` calls `self._client.text_to_speech.stream(...)` with `output_format="pcm_44100"` and `VoiceSettings`; wraps the blocking iterator with `asyncio.to_thread`; skips empty chunks; wraps SDK exceptions in `TTSError`
+- `stream()` requests `output_format="mp3_44100_128"` from ElevenLabs, decodes MP3 chunks to signed 16-bit PCM mono via `miniaudio.stream_any`, and calls `callback(pcm_chunk.tobytes())` for each decoded chunk; the entire loop runs in `asyncio.to_thread`; empty ElevenLabs chunks are skipped before being passed to miniaudio; all exceptions are wrapped in `TTSError`
 - `ElevenLabsModule` registered as `REGISTRY["elevenlabs"]` in `modules/__init__.py`
-- 9 unit tests in `tests/modules/test_elevenlabs.py` — all mocked, no real API calls
+- Unit tests in `tests/modules/test_elevenlabs.py` — all mocked (no real API calls, no real MP3 decoding)
 
-## Deviations from spec
+## Deviations from original spec
 
-None. The spec's pseudocode in `specs/elevenlabs-module.md` was followed directly.
+- **MP3 instead of PCM from ElevenLabs**: the free ElevenLabs tier does not support `pcm_44100` output. The module requests `mp3_44100_128` instead and decodes to PCM in-process using `miniaudio`. The `AudioPlayer` contract (receives raw signed 16-bit PCM) is unchanged; decoding is fully encapsulated in the module.
 
 ## Non-obvious decisions
 
-- **Single `_blocking_stream` closure in `asyncio.to_thread`**: The entire SDK iteration loop (including the `try/except`) lives inside a nested function passed to `asyncio.to_thread`. This keeps the wrapping simple and ensures exceptions raised inside the thread are re-raised in the calling coroutine as `TTSError`.
-- **Exception wrapping catches all `Exception`**: The spec distinguishes `401` auth errors from network errors, but the ElevenLabs SDK raises typed exceptions (e.g. `elevenlabs.core.api_error.ApiError`) that aren't worth handling separately at this stage. A single `except Exception` with a descriptive message is sufficient for now; auth-specific messages can be added in a later iteration if needed.
+- **`miniaudio.stream_any` for streaming decode**: accepts a source generator yielding arbitrary byte chunks of MP3 and yields decoded PCM `array.array` incrementally — a natural fit for the streaming callback model.
+- **Single `_blocking_stream` closure in `asyncio.to_thread`**: the entire encode-decode loop (ElevenLabs iterator + miniaudio decode + callback calls + try/except) lives inside one closure passed to `asyncio.to_thread`, keeping async wrapping simple.
+- **Exception wrapping catches all `Exception`**: a single `except Exception` covers both ElevenLabs SDK exceptions and miniaudio decode errors; auth-specific messages can be added in a later iteration.
 - **`VoiceSettings` import**: imported from `elevenlabs.types` (the SDK's public types module).
 
 ## Known limitations
 
-- Auth-specific error messages (e.g. `"ElevenLabs authentication failed — check api_key"` for 401s) are not implemented; all SDK exceptions produce a generic `"ElevenLabs request failed: <message>"`.
-- `TTSOptions` is currently empty; per-call voice overrides (e.g. `options.voice_id`) are not yet wired — the module always uses the config's `voice_id`.
+- Auth-specific error messages (e.g. for 401s) are not implemented; all exceptions produce a generic `"ElevenLabs request failed: <message>"`.
+- `TTSOptions` is currently empty; per-call voice overrides are not yet wired — the module always uses the config's `voice_id`.

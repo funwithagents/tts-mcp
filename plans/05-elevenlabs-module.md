@@ -25,11 +25,12 @@ See `specs/elevenlabs-module.md`.
     - `text=text`
     - `voice_id=self._voice_id`
     - `model_id=self._model`
-    - `output_format="pcm_44100"`
+    - `output_format="mp3_44100_128"`
     - `voice_settings=VoiceSettings(stability=..., similarity_boost=...)`
-  - The SDK iterator is synchronous — wrap with `asyncio.to_thread` to avoid blocking the event loop
-  - Call `callback(chunk)` for each non-empty chunk
-  - Wrap SDK exceptions in `TTSError` with descriptive messages
+  - Feed non-empty MP3 chunks from the SDK iterator into `miniaudio.stream_any` for streaming decode to signed 16-bit PCM
+  - Call `callback(pcm_chunk.tobytes())` for each decoded PCM chunk
+  - The entire loop is synchronous — wrap with `asyncio.to_thread` to avoid blocking the event loop
+  - Wrap all exceptions in `TTSError` with descriptive messages
 
 ### Register in `modules/__init__.py`
 
