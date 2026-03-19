@@ -1,1 +1,34 @@
 """TTSModule ABC, TTSOptions, TTSError."""
+from abc import ABC, abstractmethod
+from collections.abc import Callable
+from dataclasses import dataclass
+
+
+class TTSError(Exception):
+    pass
+
+
+@dataclass
+class TTSOptions:
+    pass
+
+
+class TTSModule(ABC):
+
+    @abstractmethod
+    async def stream(
+        self,
+        text: str,
+        options: TTSOptions,
+        callback: Callable[[bytes], None],
+    ) -> None:
+        """
+        Synthesize `text` and call `callback` with each PCM chunk as it arrives.
+
+        - `text`: the string to synthesize. Must not be empty.
+        - `options`: per-call overrides (voice, etc.). Module uses config defaults for None fields.
+        - `callback`: called once per audio chunk with raw bytes. May be called from any thread.
+
+        Raises `TTSError` on synthesis failure.
+        Returns only after all chunks have been passed to `callback`.
+        """
