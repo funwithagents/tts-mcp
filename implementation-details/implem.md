@@ -6,7 +6,7 @@ Each file explains non-obvious choices, gotchas, and deviations from the origina
 | Plan | File | Description | Written |
 |---|---|---|---|
 | 01 — Project Setup | [01-project-setup.md](01-project-setup.md) | uv setup, dependency notes | yes |
-| 02 — Configuration | [02-config.md](02-config.md) | Config loading, validation notes | no |
+| 02 — Configuration | [02-config.md](02-config.md) | Config loading, validation notes | yes |
 | 03 — Audio Player | [03-audio-player.md](03-audio-player.md) | sounddevice integration notes | no |
 | 04 — TTS Module Interface | [04-tts-module-interface.md](04-tts-module-interface.md) | ABC and registry notes | no |
 | 05 — ElevenLabs Module | [05-elevenlabs-module.md](05-elevenlabs-module.md) | ElevenLabs SDK integration notes | no |

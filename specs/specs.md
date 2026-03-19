@@ -6,7 +6,7 @@
 |---|---|---|---|
 | 1 | [Overview](overview.md) | Goals, components, constraints, non-goals | no |
 | 2 | [Architecture](architecture.md) | System diagram, concurrency model, data flow | no |
-| 3 | [Configuration](configuration.md) | Config file schema, fields, validation rules | no |
+| 3 | [Configuration](configuration.md) | Config file schema, fields, validation rules | yes |
 | 4 | [MCP Server](mcp-server.md) | `speak` tool, transport, lifecycle, error handling | no |
 | 5 | [TTS Module Interface](tts-module-interface.md) | ABC, audio format contract, registry, `TTSOptions` | no |
 | 6 | [ElevenLabs Module](elevenlabs-module.md) | Streaming PCM, config fields, SDK usage, error handling | no |
