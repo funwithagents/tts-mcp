@@ -12,8 +12,8 @@ See `specs/architecture.md` (component responsibilities, data flow).
 
 ### `engine.py`
 
-- [ ] Implement `TTSEngine.__init__(module: TTSModule, player: AudioPlayer)`: store both
-- [ ] Implement `async TTSEngine.speak(text: str) -> None`:
+- [x] Implement `TTSEngine.__init__(module: TTSModule, player: AudioPlayer)`: store both
+- [x] Implement `async TTSEngine.speak(text: str) -> None`:
   - Build `TTSOptions()`
   - Call `await module.stream(text, options, callback=player.feed)`
     - Since `module.stream` runs the SDK iterator in a thread, `player.feed` will be called from that thread — this is acceptable given `sounddevice` stream writes are thread-safe
@@ -22,7 +22,7 @@ See `specs/architecture.md` (component responsibilities, data flow).
 
 ### Tests (`tests/test_engine.py`)
 
-- [ ] `speak()` calls `module.stream` with the correct text and a `TTSOptions` instance
-- [ ] `speak()` calls `player.drain()` after `module.stream` completes
-- [ ] `speak()` calls `player.drain()` even if `module.stream` raises `TTSError`
-- [ ] `speak()` propagates `TTSError` after draining
+- [x] `speak()` calls `module.stream` with the correct text and a `TTSOptions` instance
+- [x] `speak()` calls `player.drain()` after `module.stream` completes
+- [x] `speak()` calls `player.drain()` even if `module.stream` raises `TTSError`
+- [x] `speak()` propagates `TTSError` after draining
