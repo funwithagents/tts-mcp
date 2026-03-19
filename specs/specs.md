@@ -10,7 +10,7 @@
 | 4 | [MCP Server](mcp-server.md) | `speak` tool, transport, lifecycle, error handling | no |
 | 5 | [TTS Module Interface](tts-module-interface.md) | ABC, audio format contract, registry, `TTSOptions` | no |
 | 6 | [ElevenLabs Module](elevenlabs-module.md) | Streaming PCM, config fields, SDK usage, error handling | no |
-| 7 | [Audio Player](audio-player.md) | `AudioPlayer`, sounddevice integration, stream lifecycle | no |
+| 7 | [Audio Player](audio-player.md) | `AudioPlayer`, sounddevice integration, stream lifecycle | yes |
 | 8 | [Project Structure](project-structure.md) | Folder layout, entry points, dependencies | yes |
 
 **Legend:** no = not implemented · yes = implemented
