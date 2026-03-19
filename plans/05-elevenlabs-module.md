@@ -1,0 +1,49 @@
+# Plan 05 — ElevenLabs Module
+
+## Goal
+
+Implement `ElevenLabsModule` in `modules/elevenlabs_v1.py`: parse config, call the ElevenLabs streaming API with `output_format="pcm_44100"`, and fire the callback for each PCM chunk.
+
+## Reference
+
+See `specs/elevenlabs-module.md`.
+
+## Tasks
+
+### `modules/elevenlabs_v1.py`
+
+- [ ] Define `ElevenLabsModule(TTSModule)`:
+  - Constructor accepts the full `tts` config dict; parse and validate:
+    - `api_key`: required, non-empty string → raise `ConfigError` if missing/empty
+    - `voice_id`: required, non-empty string → raise `ConfigError` if missing/empty
+    - `model`: optional, default `"eleven_flash_v2_5"`
+    - `stability`: optional float, default `0.5`
+    - `similarity_boost`: optional float, default `0.75`
+  - Instantiate `elevenlabs.ElevenLabs(api_key=api_key)` client in constructor
+- [ ] Implement `stream(text, options, callback)`:
+  - Call `self._client.text_to_speech.stream(...)` with:
+    - `text=text`
+    - `voice_id=self._voice_id`
+    - `model_id=self._model`
+    - `output_format="pcm_44100"`
+    - `voice_settings=VoiceSettings(stability=..., similarity_boost=...)`
+  - The SDK iterator is synchronous — wrap with `asyncio.to_thread` to avoid blocking the event loop
+  - Call `callback(chunk)` for each non-empty chunk
+  - Wrap SDK exceptions in `TTSError` with descriptive messages
+
+### Register in `modules/__init__.py`
+
+- [ ] Import `ElevenLabsModule` and add `REGISTRY["elevenlabs"] = ElevenLabsModule`
+
+### Tests (`tests/modules/test_elevenlabs_v1.py`)
+
+- [ ] Constructor raises `ConfigError` for missing `api_key`
+- [ ] Constructor raises `ConfigError` for missing `voice_id`
+- [ ] Constructor uses correct defaults for `model`, `stability`, `similarity_boost`
+- [ ] `stream()` calls callback with each chunk yielded by the SDK iterator
+- [ ] `stream()` skips empty chunks (does not call callback)
+- [ ] `stream()` wraps SDK exception in `TTSError`
+
+### Note on testing
+
+Mock `elevenlabs.ElevenLabs` and its `text_to_speech.stream` method. Do not hit the real API in unit tests.

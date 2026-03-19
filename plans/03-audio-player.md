@@ -1,0 +1,42 @@
+# Plan 03 — Audio Player
+
+## Goal
+
+Implement `AudioPlayer` in `audio.py`: a `sounddevice`-based PCM consumer that opens an output stream on the first chunk and drains cleanly when synthesis ends.
+
+## Reference
+
+See `specs/audio-player.md` for the interface, audio format, and implementation notes.
+
+## Audio format
+
+| Property | Value |
+|----------|-------|
+| Encoding | Signed 16-bit PCM, little-endian (`dtype='int16'`) |
+| Sample rate | 44100 Hz |
+| Channels | 1 (mono) |
+
+## Tasks
+
+### `audio.py`
+
+- [ ] Implement `AudioPlayer.__init__(device=None)`: store device, do not open stream yet
+- [ ] Implement `AudioPlayer.feed(chunk: bytes) -> None`:
+  - Open `sounddevice.OutputStream(samplerate=44100, channels=1, dtype='int16', device=device)` on first call
+  - Convert `chunk` bytes to `numpy.ndarray` of `int16` via `numpy.frombuffer`
+  - Write array to the stream (blocking write via `stream.write()`)
+  - Wrap blocking write in `asyncio.to_thread` if called from async context — note: `feed` is a sync method called from the module callback; the stream write itself is blocking and acceptable here since it is fast (just fills a buffer)
+- [ ] Implement `AudioPlayer.drain() -> None`:
+  - If stream is open: call `stream.stop()` then `stream.close()`
+  - Reset internal stream reference to `None`
+
+### Tests (`tests/test_audio.py`)
+
+- [ ] `feed()` opens the stream on first call and does not open it again on subsequent calls
+- [ ] `drain()` closes the stream; calling `drain()` twice does not raise
+- [ ] `drain()` before any `feed()` does not raise
+- [ ] `feed()` with empty bytes does not raise and does not open the stream
+
+### Note on testing
+
+`sounddevice` interacts with real hardware. In unit tests, mock `sounddevice.OutputStream` to avoid requiring an audio device. Use `pytest-mock` (`mocker.patch`).
